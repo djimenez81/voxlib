@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+from functools import lru_cache
 
 import yaml
 from pydantic import BaseModel, Field
@@ -95,6 +96,12 @@ class TranscriptConfig(BaseModel):
     proxy: str | None = None
 
 
+class TokensConfig(BaseModel):
+    """Token-count estimation parameters."""
+
+    chars_per_token: float = 4.0
+
+
 DEFAULT_SEED_CATEGORIES: list[SeedCategory] = [
     SeedCategory(
         name="Uncategorized",
@@ -126,12 +133,18 @@ DEFAULT_SEED_CATEGORIES: list[SeedCategory] = [
 ]
 
 
+DEFAULT_ENTITY_KINDS: list[str] = [
+    "concept",
+    "technique",
+    "term",
+    "other",
+]
+
+
 class Settings(BaseSettings):
     """Top-level voxlib configuration.
 
-    Loaded from, in order of decreasing precedence: explicit keyword
-    arguments, environment variables (``VOXLIB_`` prefix, ``__`` for
-    nesting), a YAML file, and the defaults declared on this class.
+    ... (existing docstring)
     """
 
     model_config = SettingsConfigDict(
@@ -144,9 +157,13 @@ class Settings(BaseSettings):
     seed_categories: list[SeedCategory] = Field(
         default_factory=lambda: list(DEFAULT_SEED_CATEGORIES)
     )
+    entity_kinds: list[str] = Field(
+        default_factory=lambda: list(DEFAULT_ENTITY_KINDS)
+    )
     chunking: ChunkingConfig = Field(default_factory=ChunkingConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     transcript: TranscriptConfig = Field(default_factory=TranscriptConfig)
+    tokens: TokensConfig = Field(default_factory=TokensConfig)
 
     @classmethod
     def settings_customise_sources(
@@ -224,3 +241,18 @@ class _YamlConfigSource(PydanticBaseSettingsSource):
     def __call__(self) -> dict[str, Any]:
         """Return the parsed YAML mapping as a settings source."""
         return dict(self._data)
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    """Return a process-wide cached :class:`Settings` instance.
+
+    This accessor exists so that deep pipeline code (notably token
+    counting) can read configuration without threading a ``Settings``
+    object through every call. Tests that need a fresh instance should
+    call ``get_settings.cache_clear()`` first.
+
+    Returns:
+        The cached :class:`Settings` instance.
+    """
+    return Settings()
