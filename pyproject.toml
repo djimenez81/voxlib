@@ -8,8 +8,8 @@ dynamic = ["version"]
 description = "Turn YouTube transcripts into a queryable knowledge library."
 readme = "README.md"
 requires-python = ">=3.12"
-license = { text = "MIT" }
-authors = [{ name = "voxlib contributors" }]
+license = "GPL-3.0-or-later"
+authors = [{ name = "David Jiménez" }]
 keywords = ["youtube", "transcripts", "rag", "knowledge-base", "llm"]
 classifiers = [
     "Development Status :: 3 - Alpha",
