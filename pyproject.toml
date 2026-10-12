@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "voxlib"
+dynamic = ["version"]
+description = "Turn YouTube transcripts into a queryable knowledge library."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "voxlib contributors" }]
+keywords = ["youtube", "transcripts", "rag", "knowledge-base", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
+]
+dependencies = [
+    "youtube-transcript-api>=0.6",
+    "yt-dlp>=2024.1",
+    "pysbd>=0.3",
+    "sqlalchemy>=2.0",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "numpy>=1.26",
+    "httpx>=0.27",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-mock>=3.12",
+]
+
+[project.urls]
+Homepage = "https://example.invalid/voxlib"
+Issues = "https://example.invalid/voxlib/issues"
+
+[tool.hatch.version]
+path = "src/voxlib/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/voxlib"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+markers = [
+    "network: hits the real network (skipped by default)",
+    "ollama: hits a real Ollama server (skipped by default)",
+]
+filterwarnings = ["error"]
+
+[tool.ruff]
+line-length = 79
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "T20", "SIM"]
+ignore = ["E501"]  # we enforce 79 via line-length above
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]  # asserts are fine in tests
